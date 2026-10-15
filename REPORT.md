@@ -84,29 +84,98 @@ Phần other lấy từ `estimate.json: other.source = mc.json`; đây là nhóm
 
 ## 5. Các kiểu thất bại (bước C2 + 3D)
 
-Mỗi kiểu bạn tìm thấy: một ảnh chụp trình xem 3D (chương 9) ở đúng lúc va chạm, và một câu mô tả chuỗi sự kiện (ai thấy gì, ai chờ gì). Kiểu nào cuộc săn **không** tìm thấy, và bạn tin điều đó ở mức nào? Nếu chỉ chạy **một** cuộc săn chung cho mọi kiểu thì điều gì xảy ra (gợi ý: `hunt.json: found` của từng cuộc săn)?
+Kết quả từng cuộc săn:
+
+- `hunt.json: bus_bypass.found.bus_bypass = 150`.
+- `hunt.json: cut_in.found.bus_bypass = 15`.
+- `hunt.json: crosswalk_block.found.crosswalk_block = 63`; `hunt.json: crosswalk_block.found.bus_bypass = 3`.
+- `hunt.json: rear_ended.found.bus_bypass = 5`; `hunt.json: rear_ended.found.crosswalk_block = 4`.
+
+Bus_bypass: C2 chờ khe rồi lách qua xe buýt dừng, xe buýt che tầm nhìn ego nên ego nhận ra xe chen vào quá muộn. Crosswalk_block: người đi bộ bước ra từ sau xe buýt; ego dừng nhưng thân xe còn chắn vạch qua đường.
+
+> TODO-ảnh: evidence/shots/q5-bus_bypass.png — mở viewer chương 9, chọn run B-01 (`viewer.json: runs[0].id = B-01`), kéo đến t = 12.5 s lúc tiếp xúc rồi chụp. Thời gian được tính bằng phát lại đúng params/policy của run, không phải trường có sẵn trong JSON.
+
+> TODO-ảnh: evidence/shots/q5-crosswalk_block.png — mở viewer chương 9, chọn run C-01 (`viewer.json: runs[4].id = C-01`), kéo đến t = 21.5 s lúc block rồi chụp. Thời gian được tính bằng phát lại đúng params/policy của run.
+
+Không tìm thấy cut_in hoặc rear_ended trong found. Độ tin cậy về việc chúng không tồn tại là thấp: săn định hướng không phải mẫu tự nhiên độc lập. Cần báo cận MC `mc.json: per_mode.cut_in.hi = 0.0012788956648046956` và `mc.json: per_mode.rear_ended.hi = 0.0012788956648046956`, không báo xác suất bằng không. Cần săn riêng mỗi mode vì mục tiêu chung dễ dồn proposal vào bus_bypass dễ nhất; ngay cuộc săn cut_in cũng chỉ tìm bus_bypass, còn cuộc săn rear_ended tìm các mode khác như trên.
 
 ## 6. Sửa planner (bước E + 3D)
 
-`fix.json`: policy được chọn, `fail` và `fail_hi` trên TRAIN, trên TEST (`fail_hi_seen` và `fail_hi`), và của policy gốc trên TEST; vì sao `fail_hi` của bản sửa có thể lớn hơn `fail` của policy gốc dù bản sửa tốt hơn thật? quãng đường và số lần phanh gấp. Một ảnh chụp 3D có **bóng mờ** (policy gốc) cho một kịch bản mà bản sửa tránh được. Có núm chỉnh nào "nghe thì an toàn hơn" nhưng thực tế làm tăng thất bại? Giải thích bằng cách thế giới phản ứng lại.
+Policy chọn trên TRAIN: `fix.json: chosen.policy.cutinLat = 3.0`; các núm còn lại giữ mặc định. Khoảng nhận xe nhập làn theo phương ngang lớn hơn giúp ego phản ứng sớm hơn.
+
+| Tập / policy | fail | fail_hi_seen | fail_hi |
+|---|---|---|---|
+| TRAIN baseline | `fix.json: baseline_train.fail = 0.0004350093951191235` | `fix.json: baseline_train.fail_hi_seen = 0.0008229370383387267` | `fix.json: baseline_train.fail_hi = 0.0008229370383387267` |
+| TRAIN chọn | `fix.json: chosen.fail = 1.0787595918613592e-06` | `fix.json: chosen.fail_hi_seen = 2.491340155950194e-06` | `fix.json: chosen.fail_hi = 2.491340155950194e-06` |
+| TEST baseline | `fix.json: baseline_test.fail = 0.00040657374121348173` | `fix.json: baseline_test.fail_hi_seen = 0.000987094719355615` | `fix.json: baseline_test.fail_hi = 0.0022659903841603106` |
+| TEST chọn | `fix.json: chosen_test.fail = 7.5319376169206e-07` | `fix.json: chosen_test.fail_hi_seen = 1.5758709251520082e-06` | `fix.json: chosen_test.fail_hi = 0.038780471535729846` |
+
+| Tập / policy | Quãng đường trung bình (m) | Số khung phanh gấp trung bình |
+|---|---|---|
+| TRAIN baseline | `fix.json: baseline_train.progress = 213.0473382472992` | `fix.json: baseline_train.harsh = 9.69140625` |
+| TRAIN chọn | `fix.json: chosen.progress = 213.2034930586815` | `fix.json: chosen.harsh = 8.046875` |
+| TEST baseline | `fix.json: baseline_test.progress = 215.72192016601562` | `fix.json: baseline_test.harsh = 8.201333333333332` |
+| TEST chọn | `fix.json: chosen_test.progress = 215.59594959513348` | `fix.json: chosen_test.harsh = 7.717666666666666` |
+
+TEST cho điểm ước lượng và cận của các mode đã thấy giảm, nhưng chưa chứng minh rủi ro tổng thể thật sự thấp hơn. Dù bản sửa tốt hơn thật, cận trên vẫn có thể lớn hơn điểm baseline: đó là hai đại lượng khác nhau, và mode chưa thấy phải cộng bất định. Cụ thể `fix.json: chosen_test.bus_bypass.upper_zero_hits = 0.0375` và `fix.json: chosen_test.other_crashes.hi = 0.0012788956648046956`. Không có hits không có nghĩa xác suất bằng không. TRAIN fail_hi trong file chỉ phản ánh phần đã thấy, chưa cộng các cận này.
+
+> TODO-ảnh: evidence/shots/q6-fix-ghost.png — mở viewer chương 9, chọn run B-01 (`viewer.json: runs[0].id = B-01`), chạy policy chọn và bật bóng mờ baseline, kéo đến t = 12.5 s rồi chụp. Phát lại cùng params cho thấy baseline chạm C2 tại thời điểm này, bản sửa không có tiếp xúc ego.
+
+Núm nghe an toàn hơn nhưng tăng điểm thất bại: `fix.json: table[8].policy.T = 2.0`, `fix.json: table[8].fail = 0.000917426558228401`, so với `fix.json: baseline_train.policy.T = 1.6` và fail baseline TRAIN ở bảng. Khe lớn tạo cơ hội để C2 chen vào; giảm tốc cũng có thể khiến TG bám sát đâm đuôi. Đây là cơ chế phản ứng giải thích tính không đơn điệu, không phải bằng chứng rằng dòng này đã quan sát rear_ended. Tương tự `fix.json: table[2].policy.cautionV = 6.0` có `fix.json: table[2].fail = 0.0009637356174758274`: giảm tốc thận trọng không bảo đảm giảm lỗi.
 
 ## 7. Từ mô phỏng ra đường thật
 
-Phân phối tự nhiên trong `space.py` là giả định. Chọn **ba** giả định ảnh hưởng nhiều nhất đến con số của bạn (ví dụ khe chấp nhận của xe chuyển làn, tỉ lệ người đi bộ ngó qua xe buýt, ma sát đường ướt). Với mỗi cái: dữ liệu thật nào sẽ thay nó, lấy từ đâu, và nếu nó sai thì con số của bạn sai theo hướng nào?
+Các giả định đọc từ avsim/space.py và town A (`meta.json: _run.town = A`), không phải số đo evidence. Hướng lệch dưới đây là dự đoán cơ chế cần kiểm định trong thế giới phản ứng.
+
+| Giả định | Dữ liệu thực thay thế | Hướng sai nếu giả định sai |
+|---|---|---|
+| cutGap là lognormal với trung vị theo town | Trích khe nhập làn từ [NGSIM của FHWA](https://ops.fhwa.dot.gov/trafficanalysistools/ngsim.htm), sau đó hiệu chỉnh bằng video tại trạm buýt địa phương | Nếu khe thực nhỏ hơn giả định, có thể đánh giá thiếu nhập làn sát và bus_bypass; khe lớn hơn có thể làm ngược lại. |
+| pedLook là Bernoulli, người đi bộ có thể ngó qua xe buýt | Mã hóa hành vi nhìn và bước từ video tại trạm theo phương pháp trong [nghiên cứu quan sát trạm buýt Utah](https://arxiv.org/abs/2408.08890); đây là nguồn phương pháp, không phải phép đo trực tiếp pedLook địa phương | Nếu thực tế ít người ngó hơn, có thể đánh giá thiếu crosswalk_block; nhiều người ngó hơn thì có thể đánh giá thừa. |
+| wet là Bernoulli và mu chỉ có trạng thái khô/ướt cố định | Ghép mưa tại trạm gần đường từ [NOAA NCEI Daily Summaries](https://www.ncei.noaa.gov/access/search/datasets/daily-summaries/) với nhật ký mặt đường và phép đo ma sát của đơn vị quản lý đường | Nếu thời gian ướt cao hơn hoặc độ bám thấp hơn giả định, quãng phanh dài hơn nên nguy cơ thường bị đánh giá thiếu; chiều ngược lại thường đánh giá thừa. Mưa không đồng nghĩa đường luôn ướt. |
 
 ## 8. Giới hạn
 
-Ba điều mà xác suất bạn báo **không** nói, ví dụ: thế giới chỉ có một con phố; người lái chỉ là IDM; cảm biến hoàn hảo trừ phần bị xe buýt che. Nếu được thêm một tuần, bạn sẽ đo gì tiếp?
+- Chỉ một tuyến phố với trạm buýt cố định: xác suất không đại diện mạng đường. Có thêm một tuần, đo khe nhập làn, lưu lượng và xung đột tại các trạm có hình học khác, rồi tái ước lượng theo phơi nhiễm từng nơi.
+- Tài xế phản ứng chủ yếu bằng IDM: chưa mô tả đủ mất tập trung, do dự, nhường đường. Đo phân phối thời gian phản ứng và giảm tốc xe bám sau từ video, kiểm tra độ nhạy khi đổi mô hình hành vi.
+- Cảm biến hoàn hảo ngoài che khuất xe buýt: chưa tính bỏ sót, trễ và nhiễu. Đo độ trễ phát hiện người đi bộ/C2 khi ló ra, đưa sai số vào mô phỏng và so thay đổi rủi ro cùng quãng đường tiến được.
 
 ## 9. Rắc rối của bạn (bước G + chương 10)
 
-- **Rắc rối:** bạn dựng gì, và ngoài đời nó giống tình huống nào.
-- **Căn cứ:** vì sao bạn nghĩ planner sẽ xử lý kém.
-- **Giả định:** `space` và `exposure` lấy từ đâu (`hazard.json: why`).
-- **Kết quả**, theo `mine.json`:
-  - số va chạm `avoidable` (tránh được bằng phanh hết cỡ, biết trước), `unavoidable`, `unattributed`, và `low_speed`, với policy gốc và với policy bạn chọn; `accepted` (bao nhiêu phần `space` của bạn là khả thi);
-  - P(lỗi planner | rắc rối) kèm khoảng Wilson;
-  - tần suất mỗi chuyến, đặt cạnh tần suất lách xe buýt của bạn.
-- **Hình:** một ảnh chương 9 hoặc 10 ở lúc va chạm.
-- **Bạn tự lái thì sao:** nếu bạn đã thử lái, bạn tránh được không, và bạn làm gì khác planner?
-- **Cách sửa:** núm chỉnh nào sửa được rắc rối này? Nếu không núm nào sửa được, planner cần thêm **logic gì** (mô tả, không cần code)?
+Hazard là xe dẫn L1 phanh gấp, giống xe trước giảm tốc bất ngờ vì ùn tắc hoặc vật cản. Cấu hình: `hazard.json: hazards[0].who = L1`, `hazard.json: hazards[0].decel = 4.5` m/s², `hazard.json: hazards[0].dur = 2.5` s, `hazard.json: hazards[0].t0 = 4.0` s, `hazard.json: hazards[0].trig = 40.0` m. Planner phản ứng theo khe/tốc độ nên có thể chậm với giảm tốc đột ngột; phanh mạnh lại gây khó cho TG.
+
+Nguồn giả định, trích `hazard.json: why`: “Dur, trig, t0 là lựa chọn kỹ thuật có tham chiếu, không phải khoảng phân vị thực nghiệm; lấy mẫu đều chỉ để khảo sát độ nhạy.” why dẫn NHTSA DOT HS 810 846 về phanh và FHWA-HRT-04-091 về quãng dừng; đây là tham chiếu thiết kế, không phải phân phối đã hiệu chỉnh cho Việt Nam. `hazard.json: space.h0_decel = [3.0, 4.9]`, `hazard.json: space.h0_dur = [1.0, 4.0]`, `hazard.json: space.h0_t0 = [2.0, 18.0]`, `hazard.json: space.h0_trig = [20.0, 60.0]`.
+
+`hazard.json: exposure = 0.08`; trích `hazard.json: why`: “hai giả định này không phải thống kê của nghiên cứu hay số đo Việt Nam.” Exposure ngoại suy theo độ dài chuyến và hệ số gặp xe dẫn, còn bất định khi chuyển phanh đỉnh sang xung phanh hằng; chưa phải tần suất thực địa đã xác nhận.
+
+`mine.json: accepted = 0.9946666666666667`; `mine.json: infeasible = 8`.
+
+| Đại lượng | baseline | chosen |
+|---|---|---|
+| n | `mine.json: baseline.n = 1492` | `mine.json: chosen.n = 1492` |
+| crashes | `mine.json: baseline.crashes = 1` | `mine.json: chosen.crashes = 0` |
+| avoidable | `mine.json: baseline.avoidable = 0` | `mine.json: chosen.avoidable = 0` |
+| unavoidable | `mine.json: baseline.unavoidable = 0` | `mine.json: chosen.unavoidable = 0` |
+| unattributed | `mine.json: baseline.unattributed = 1` | `mine.json: chosen.unattributed = 0` |
+| low_speed | `mine.json: baseline.low_speed = 1` | `mine.json: chosen.low_speed = 0` |
+| avoidable_foreknown | `mine.json: baseline.avoidable_foreknown = 0` | `mine.json: chosen.avoidable_foreknown = 0` |
+| p | `mine.json: baseline.p = 0.0` | `mine.json: chosen.p = 0.0` |
+| Wilson lo | `mine.json: baseline.lo = 0.0` | `mine.json: chosen.lo = 0.0` |
+| Wilson hi | `mine.json: baseline.hi = 0.002568186364117698` | `mine.json: chosen.hi = 0.002568186364117698` |
+| per_trip | `mine.json: baseline.per_trip = 0.0` | `mine.json: chosen.per_trip = 0.0` |
+| per_trip_hi | `mine.json: baseline.per_trip_hi = 0.00020545490912941583` | `mine.json: chosen.per_trip_hi = 0.00020545490912941583` |
+
+Wilson lo/hi là khoảng cho xác suất lỗi planner có điều kiện trên hazard và traffic town. p và per_trip là điểm ước lượng khi chưa quan sát lỗi tránh được; phải báo hi và per_trip_hi cho rủi ro, không kết luận xác suất thật bằng không. per_trip = p × exposure; per_trip_hi = hi × exposure.
+
+Avoidable: phanh hết mức ngay khi hazard đang hoạt động và vừa nhìn thấy thì tránh được. Unavoidable: ngay oracle đó cũng không tránh được. Unattributed: chưa có hazard hoạt động trước tiếp xúc, không quy lỗi cho hazard. low_speed là cờ nằm trong các lớp, không cộng như lớp riêng. avoidable_foreknown giả định biết từ lúc hazard bắt đầu kể cả khi bị che.
+
+Chuẩn “tránh được” lạc quan về tri giác và điều khiển: oracle biết ngay lúc nhìn thấy và phanh toàn bộ μg, nên có thể đếm nhiều lỗi tránh được hơn planner thật làm nổi. Ngược lại oracle chỉ phanh, không đánh lái, nên có thể đếm ít hơn khả năng tránh của người lái được phép chuyển hướng.
+
+Va chạm baseline duy nhất là `mine.json: baseline.examples[0].kind = unattributed`, `mine.json: baseline.examples[0].other = C2`, `mine.json: baseline.examples[0].t = 14.7` s, `mine.json: baseline.examples[0].v_ego = 0.7347483038902283` m/s; `mine.json: baseline.examples[0].fire_t = null`. Chưa có bằng chứng L1 gây lỗi tránh được; cảnh chính xác cũng không có va chạm (`mine.json: exact.planner = []`).
+
+So mỗi chuyến với một cơ hội gặp bus_bypass: `estimate.json: seeds[0].per.bus_bypass.p = 0.0006869319093288169`, `estimate.json: seeds[1].per.bus_bypass.p = 0.000421344802583463`, `estimate.json: seeds[2].per.bus_bypass.p = 0.0005377381726433769`; nhân từng p với một cơ hội/chuyến cho đúng các điểm tần suất đó. Cận per_trip_hi của hazard trong bảng nhỏ hơn các điểm bus_bypass này, nhưng khác loại bất định và exposure còn giả định; chưa chứng minh hazard ít nguy hiểm hơn ngoài thực tế.
+
+> TODO-ảnh: evidence/shots/q9-hazard.png — mở viewer chương 10, nạp hazard.json và params tại mine.json: baseline.examples[0].params, dùng baseline, kéo đến t = 14.7 s (`mine.json: baseline.examples[0].t = 14.7`) rồi chụp. Đây là va chạm C2 chưa quy cho hazard, không phải ảnh chứng minh L1 gây lỗi; viewer.json chưa xuất run mine này.
+
+TODO-tự-lái: người dùng tự thử cảnh trong chương 10 rồi ghi có tránh được không và làm gì khác planner; chưa có kết quả tự lái để báo cáo.
+
+Đề xuất logic mới: theo dõi giảm tốc/đèn phanh L1 để phanh sớm, tăng khoảng theo xe khi có TG bám sát và hạn chế phanh muộn. Có thể thử tăng T hoặc b trong POLICY_LIMITS trên TRAIN, nhưng tăng T đơn thuần có thể tạo khe cho C2 như bảng câu trước. Chưa có bằng chứng núm nào chữa được hazard này; cần đánh giá lại lỗi tránh được, va chạm phía sau và tiến độ trên TEST độc lập.

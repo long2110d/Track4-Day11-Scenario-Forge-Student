@@ -27,3 +27,10 @@
 - Added evidence citations, replay and importance sampling tables, and uncertainty bounds.
 - Preserved the student ID, template headings, and questions 5–9.
 - Ran python -m pytest -q tests/test_todos.py: 31 passed.
+
+## Task 5: REPORT.md — questions 5–9 (with screenshot placeholders)
+- Completed Vietnamese answers for REPORT.md questions 5–9 using existing evidence.
+- Added screenshot placeholders and verified viewer contact times by replay.
+- Explained policy uncertainty, distribution assumptions, world limits, and hazard attribution.
+- Preserved questions 1–4 and the MSSV line; created no images.
+- Validation: python -m pytest -q tests/test_todos.py — 31 passed.
