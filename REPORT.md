@@ -97,7 +97,9 @@ Bus_bypass: C2 chờ khe rồi lách qua xe buýt dừng, xe buýt che tầm nh�
 
 Ảnh B-01 (`viewer.json: runs[0].id = B-01`), đường ướt μ 0,5, khe chấp nhận 8,1 m: C2 (xe tím) lách xe buýt rồi nhập vào làn, xe ta (xe đặc, policy gốc) chạm C2 lúc 12,5 s (banner đỏ của trình xem). Ảnh có bóng mờ của bản sửa ở câu 6.
 
-> Ảnh: không kèm ảnh chụp trình xem cho kiểu này. Có thể xem lại run C-01 (`viewer.json: runs[4].id = C-01`); phát lại bằng Python cho sự kiện block với P1 lúc t = 21,5 s (số từ lần phát lại).
+![Chương 9, C-01 (crosswalk_block) lúc t = 21,9 s](evidence/shots/q5-crosswalk_block.png)
+
+Ảnh C-01 (`viewer.json: runs[4].id = C-01`): xe buýt đỗ che tầm nhìn, xe ta phanh muộn và dừng với thân xe nằm trên vạch qua đường; người đi bộ P1 đang qua phải đứng lại. Trình xem báo sự kiện chặn lối lúc 21,5 s, khớp lần phát lại bằng Python.
 
 Không tìm thấy cut_in hoặc rear_ended trong found. Độ tin cậy về việc chúng không tồn tại là thấp: săn định hướng không phải mẫu tự nhiên độc lập. Cần báo cận MC `mc.json: per_mode.cut_in.hi = 0.0012788956648046956` và `mc.json: per_mode.rear_ended.hi = 0.0012788956648046956`, không báo xác suất bằng không. Cần săn riêng mỗi mode vì mục tiêu chung dễ dồn proposal vào bus_bypass dễ nhất; ngay cuộc săn cut_in cũng chỉ tìm bus_bypass, còn cuộc săn rear_ended tìm các mode khác như trên.
 
