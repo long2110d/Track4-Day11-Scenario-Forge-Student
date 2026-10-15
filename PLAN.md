@@ -19,7 +19,11 @@ TEST_CMD: python -m pytest -q tests/test_todos.py
 
 ---
 
-## Task 1: Environment check + metrics TODOs (TODO 1, 2, 9)
+## Task 1: All 10 TODOs (metrics, feasible, estimate, search, modes, policy)
+
+TEST_CMD runs the whole suite, so all 10 TODOs are done in this one task. Sub-parts A–C below.
+
+### Part A: Environment check + metrics TODOs (TODO 1, 2, 9)
 
 **Files to modify:** `lab11/metrics.py` only (replace the three `raise NotImplementedError` bodies).
 
@@ -36,9 +40,9 @@ Steps:
 3. **TODO 2 `contact_type(R, k, event)`**: other actor id = `event["b"] if event["a"] == "ego" else event["a"]`; index via `R.ids.index(other)`; `f = event["f"]`. With ego row `E = R.F[k, f, core.IX["ego"]]` and other row `O`: `rx, rz = O[0]-E[0], O[1]-E[1]`; `lon = rx*E[2] + rz*E[3]`; `lat = -rx*E[3] + rz*E[2]`. Return `"front"` if `lon > 2.3 and abs(lat) < 1.6`, `"rear"` if `lon < -2.3 and abs(lat) < 1.6`, else `"side"`.
 4. **TODO 9 `progress_metrics(R)`**: `e = R.F[:, :, core.IX["ego"]]`; `dist = np.hypot(np.diff(e[..., 0], axis=1), np.diff(e[..., 1], axis=1)).sum(axis=1)`; `harsh = (e[..., 5] < -3.0).sum(axis=1)` (int). Return `(dist, harsh)`.
 
-**Acceptance:** `python -m pytest -q tests/test_todos.py -k "min_ttc or contact_type or progress"` → all 10 selected tests pass (4 min_ttc, 5 contact_type, 1 progress_metrics). Other tests may still fail with NotImplementedError. No file other than `lab11/metrics.py` changed.
+Part A check: `-k "min_ttc or contact_type or progress"` → 10 pass.
 
-## Task 2: Feasibility + estimation TODOs (TODO 3, 4, 6, 7)
+### Part B: Feasibility + estimation TODOs (TODO 3, 4, 6, 7)
 
 **Files to modify:** `lab11/feasible.py`, `lab11/estimate.py`.
 
@@ -47,9 +51,9 @@ Steps:
 3. **TODO 6 `log_weights(Z, Bn, nat, prop, beta=0.2)`**: `lp = nat.logpdf(Z, Bn)`; `lq_prop = proposal_logpdf(prop, Z, Bn)`; `lq = np.logaddexp(np.log1p(-beta) + lq_prop, np.log(beta) + lp)` (wrap in `np.errstate(divide="ignore")` so beta = 0 or 1 gives -inf terms safely); return `lp - lq`. Must be 0 when the proposal equals the natural distribution and always `<= log(1/beta)`.
 4. **TODO 7 `is_estimate(logw, y, z=1.96)`**: `w = np.exp(np.asarray(logw, float))`, `y = np.asarray(y, float)`, `n = len(y)`, `wy = w*y`; `p = wy.mean()` (NOT self-normalised); `se = wy.std(ddof=1)/sqrt(n)` if `n > 1` else `0.0`; `lo = max(0.0, p - z*se)`, `hi = p + z*se`; `ess = w.sum()**2 / (w**2).sum()` (0.0 if the denominator is 0). Return `dict(p=, lo=, hi=, se=, ess=, n=)` with floats and `n` as int.
 
-**Acceptance:** `python -m pytest -q tests/test_todos.py -k "feasible or wilson or log_weights or is_estimate"` → all pass. Only the two files changed.
+Part B check: `-k "feasible or wilson or log_weights or is_estimate"` → all pass.
 
-## Task 3: Search, mode labelling and policy choice TODOs (TODO 5, 8, 10)
+### Part C: Search, mode labelling and policy choice TODOs (TODO 5, 8, 10)
 
 **Files to modify:** `lab11/search.py`, `lab11/modes.py`, `lab11/policy.py`.
 
@@ -62,9 +66,9 @@ Steps:
    4. otherwise `"other"`.
 3. **TODO 10 `choose_policy(table, baseline_progress, max_loss=0.05)`**: keep rows with `row["progress"] >= (1 - max_loss) * baseline_progress`; if none return `None`; else return the row (the original dict) minimising `(row["fail_hi"], -row["progress"])`.
 
-**Acceptance:** `python -m pytest -q tests/test_todos.py` → **31 passed** (whole suite green). Only these three files changed.
+**Acceptance:** `python -m pytest -q tests/test_todos.py` → **31 passed** (whole suite green). Only `lab11/*.py` changed.
 
-## Task 4: Design the custom hazard file `hazard.json` (step G)
+## Task 2: Design the custom hazard file `hazard.json` (step G)
 
 **Files to create:** `hazard.json` (repository root). Read `avsim/studio.py` (`FORMAT`, `LIMITS`, `check_space`, `hazard_ok`, `load`), `avsim/core.py` (`DEFAULTS`, `HAZARD_DEFAULTS`, `fired()` near line 386: a hazard fires once `t >= t0` and the ego is within `trig` m behind the hazard's x) and `run_all.py: step_mine` first.
 
@@ -87,15 +91,15 @@ Design (do NOT copy README's bicycle example — no `bike` hazard). Recommended:
 - `why` (Vietnamese) must justify **both** the frequency and each range with real, citable sources, honestly marked as approximations, e.g.: NHTSA Traffic Safety Facts (rear-end collisions are the most common crash type, ~29–33 % of police-reported crashes); NCHRP Report 400 / Fambro et al. 1997 (surprise emergency braking of drivers averages ≈ 0.55 g, range ~0.3–0.8 g ⇒ ≈ 3–7.5 m/s²); AASHTO Green Book (comfortable deceleration 3.4 m/s²); SHRP2 / 100-Car naturalistic driving studies (hard-braking events ≥ 0.3 g occur on the order of once per tens of km ⇒ the chosen per-trip exposure). State how each number in `space`/`exposure` follows from those sources. Do not invent precise statistics; give ranges and say they are estimates.
 - Verify:
   1. `python -c "from avsim import studio; d=studio.load('hazard.json'); print(studio.check_space(d), studio.hazard_ok(d['hazards'], d['params']))"` → `[] True`.
-  2. `python run_all.py mine hazard.json` (needs Tasks 1–3; runs ~1 500 scenarios; without `evidence/fix.json` it only evaluates the baseline policy — that is fine here). Read the printed `accepted` percentage. If `< 50 %`, narrow `h0_decel` (e.g. upper bound ≤ 4.9 so wet roads with mu 0.5 do not reject it) and rerun until `evidence/mine.json: accepted >= 0.5`. Update `why` if ranges change.
+  2. `python run_all.py mine hazard.json` (needs Task 1; runs ~1 500 scenarios; without `evidence/fix.json` it only evaluates the baseline policy — that is fine here). Read the printed `accepted` percentage. If `< 50 %`, narrow `h0_decel` (e.g. upper bound ≤ 4.9 so wet roads with mu 0.5 do not reject it) and rerun until `evidence/mine.json: accepted >= 0.5`. Update `why` if ranges change.
 
 **Acceptance:** `hazard.json` loads with `studio.load`, `check_space` returns `[]`, `hazard_ok` is True, `exposure` in (0, 1], `why` non-empty and cites sources for frequency and every range; `evidence/mine.json: accepted >= 0.5`; TEST_CMD still 31 passed. Do not modify any other file.
 
-## Task 5: Run the full pipeline (no `--quick`) and keep the evidence
+## Task 3: Run the full pipeline (no `--quick`) and keep the evidence
 
 **Files to modify:** `.gitignore` (remove only the line `evidence/` so `evidence/*.json` can be committed — it is a required deliverable). Generated: `evidence/*.json`.
 
-1. Precondition: TEST_CMD → 31 passed; `hazard.json` exists (Task 4).
+1. Precondition: TEST_CMD → 31 passed; `hazard.json` exists (Task 2).
 2. Run the full pipeline **without `--quick`**. Total ≈ 9–25 min; `fix` is the longest (3–10 min). To avoid tool timeouts run one step per command, in this order, each with a long timeout (≥ 600 s, or run in background and wait):
    `python run_all.py world`, `python run_all.py replay`, `python run_all.py mc`, `python run_all.py hunt`, `python run_all.py estimate`, `python run_all.py fix`, `python run_all.py mine hazard.json`, `python run_all.py export`
    (equivalent to `python run_all.py all`, which you may use instead if it fits in one run). `mine` must run after `fix` so `mine.json` contains both `baseline` and `chosen`.
@@ -106,7 +110,7 @@ Design (do NOT copy README's bicycle example — no `bike` hazard). Recommended:
 
 **Acceptance:** all evidence files exist from a non-quick run (`_run.quick == false` in each), `hunt.json` has entries for each mode, TEST_CMD still 31 passed, no changes to `avsim/`, `run_all.py`, `tests/`, `lab11/` (unless a bug fix was needed — then TEST_CMD must still pass).
 
-## Task 6: REPORT.md — town and questions 1–4
+## Task 4: REPORT.md — town and questions 1–4
 
 **Files to modify:** `REPORT.md` only. Keep line 1 exactly `MSSV: 202602673` and keep the template headings. Write answers in **Vietnamese**. Every number must be copied from `evidence/*.json` and cited as `file.json: field = value` (e.g. `mc.json: k = 4`). Read the needed JSON files with the Read tool (they can be large: read only needed parts or use a small `python -c` to print fields).
 
@@ -118,7 +122,7 @@ Design (do NOT copy README's bicycle example — no `bike` hazard). Recommended:
 
 **Acceptance:** line 1 unchanged; town filled; questions 1–4 answered in Vietnamese; every number cites file and field and matches `evidence/` exactly (spot-check each with the JSON). TEST_CMD still 31 passed.
 
-## Task 7: REPORT.md — questions 5–9 (with screenshot placeholders)
+## Task 5: REPORT.md — questions 5–9 (with screenshot placeholders)
 
 **Files to modify:** `REPORT.md` only (sections 5–9). Vietnamese; every number cited as `file.json: field = value` and matching `evidence/`. Do not create images; where a 3D screenshot is needed insert a placeholder line like `> TODO-ảnh: evidence/shots/q5-bus_bypass.png — mở viewer chương 9, chọn run <id>, kéo đến t = <s> s (lúc va chạm) rồi chụp.` naming the run id from `evidence/viewer.json` and the time.
 
