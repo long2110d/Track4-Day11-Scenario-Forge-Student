@@ -1,0 +1,124 @@
+{
+ "file": "hazard.json",
+ "hazards": [
+  {
+   "who": "L1",
+   "decel": 4.5,
+   "dur": 2.5,
+   "t0": 4.0,
+   "trig": 40.0,
+   "type": "brake"
+  }
+ ],
+ "space": {
+  "h0_decel": [
+   3.0,
+   4.9
+  ],
+  "h0_dur": [
+   1.0,
+   4.0
+  ],
+  "h0_t0": [
+   2.0,
+   18.0
+  ],
+  "h0_trig": [
+   20.0,
+   60.0
+  ]
+ },
+ "world": "town",
+ "exposure": 0.08,
+ "why": "Xe L1 phanh gấp. Nguồn [1]: NHTSA, DOT HS 810 846 (2007), Hình 51 và Bảng 34, https://www.nhtsa.gov/sites/nhtsa.gov/files/analyses20of20rear-end20crashes20and20near-crashes20dot20hs2081020846.pdf . Ngưỡng >0,30g khoảng 104 lần/1.000 mile, tức khoảng một lần/15 km. Exposure 0,08 là ước lượng: giả định chuyến 10 km và hệ số 0,13 cho việc gặp xe dẫn phanh trong cấu hình này, 104/1609*10*0,13 ≈ 0,084, làm tròn 0,08; hai giả định này không phải thống kê của nghiên cứu hay số đo Việt Nam. Decel [3,0;4,9] xấp xỉ dải 0,31–0,50g trong [1], đồng thời không vượt 0,5*9,81 trên đường ướt. Nguồn [2]: FHWA-HRT-04-091, chương 3, Bảng 11 (AASHTO), https://www.fhwa.dot.gov/publications/research/safety/04091/03.cfm : giảm tốc thiết kế 3,4 m/s², thời gian nhận biết/phanh 2,5 s. Với tốc độ mô phỏng khoảng 12 m/s, thời gian dừng 12/4,9 đến 12/3 ≈ 2,4–4 s; dur [1;4] mở rộng xuống 1 s để thử cả xung phanh ngắn. Theo công thức quãng dừng của [2], 12*2,5+12²/(2*3,4) ≈ 51 m; trig [20;60] bao quanh mức này và khoảng cách xe ban đầu 34 m, gồm cả bám gần. T0 [2;18] là cửa sổ thử nghiệm suy ra cho mô phỏng 24 s: chờ khoảng một thời gian phản ứng của [2] ở đầu, chừa ít nhất 6 s cuối cho phanh và quan sát. Dur, trig, t0 là lựa chọn kỹ thuật có tham chiếu, không phải khoảng phân vị thực nghiệm; lấy mẫu đều chỉ để khảo sát độ nhạy. Exposure còn bất định vì chuyển từ phanh của xe được đo sang xe dẫn và từ giảm tốc đỉnh sang xung phanh hằng.",
+ "exact": {
+  "planner": []
+ },
+ "infeasible": 8,
+ "accepted": 0.9946666666666667,
+ "conditional_on": "your town's traffic",
+ "baseline": {
+  "n": 1492,
+  "crashes": 1,
+  "avoidable": 0,
+  "unavoidable": 0,
+  "unattributed": 1,
+  "low_speed": 1,
+  "avoidable_foreknown": 0,
+  "overlap_at_start": 0,
+  "by_hazard": {
+   "unattributed": 1
+  },
+  "examples": [
+   {
+    "params": {
+     "cutT0": 5.583505997159767,
+     "cutDur": 5.008417536607704,
+     "cutV": 15.209029726822118,
+     "cutDs": -8.667879247208768,
+     "pedT0": 11.794580372007713,
+     "pedV": 0.9710071828030717,
+     "busGo": 16.107425607020854,
+     "tgT": 1.3661741960544873,
+     "cutGap": 12.04208466367638,
+     "pedGap": 2.2516450787390414,
+     "mu": 0.5,
+     "pedLook": 1,
+     "cutBrake": 0.0,
+     "civil": true,
+     "h0_decel": 3.0713437726624324,
+     "h0_dur": 2.797117218356007,
+     "h0_t0": 3.6538194492276457,
+     "h0_trig": 38.736306650503266
+    },
+    "kind": "unattributed",
+    "low_speed": true,
+    "other": "C2",
+    "t": 14.7,
+    "v_ego": 0.7347483038902283,
+    "fire_t": null,
+    "brake_t": null
+   }
+  ],
+  "p": 0.0,
+  "lo": 0.0,
+  "hi": 0.002568186364117698,
+  "per_trip": 0.0,
+  "per_trip_hi": 0.00020545490912941583
+ },
+ "chosen": {
+  "n": 1492,
+  "crashes": 0,
+  "avoidable": 0,
+  "unavoidable": 0,
+  "unattributed": 0,
+  "low_speed": 0,
+  "avoidable_foreknown": 0,
+  "overlap_at_start": 0,
+  "by_hazard": {},
+  "examples": [],
+  "p": 0.0,
+  "lo": 0.0,
+  "hi": 0.002568186364117698,
+  "per_trip": 0.0,
+  "per_trip_hi": 0.00020545490912941583
+ },
+ "_run": {
+  "mssv": "202602673",
+  "town": "A",
+  "quick": false,
+  "step": "mine",
+  "salted": false,
+  "budgets": {
+   "replay_n": 400,
+   "mc_n": 3000,
+   "iters": 8,
+   "per_iter": 300,
+   "final_n": 600,
+   "seeds": 3,
+   "fix_n": 400,
+   "progress_n": 256,
+   "mine_n": 1500
+  }
+ }
+}

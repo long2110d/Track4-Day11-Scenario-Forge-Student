@@ -1,7 +1,6 @@
 __pycache__/
 .pytest_cache/
 .venv/
-evidence/
 .DS_Store
 .auto-logs/
 REVIEW.md
