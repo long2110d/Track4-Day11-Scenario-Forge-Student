@@ -3,3 +3,7 @@ __pycache__/
 .venv/
 evidence/
 .DS_Store
+.auto-logs/
+REVIEW.md
+TASK_SUMMARY.md
+.autowf.env
