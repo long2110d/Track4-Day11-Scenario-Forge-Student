@@ -93,7 +93,9 @@ Kết quả từng cuộc săn:
 
 Bus_bypass: C2 chờ khe rồi lách qua xe buýt dừng, xe buýt che tầm nhìn ego nên ego nhận ra xe chen vào quá muộn. Crosswalk_block: người đi bộ bước ra từ sau xe buýt; ego dừng nhưng thân xe còn chắn vạch qua đường.
 
-> Ảnh: không kèm ảnh chụp trình xem cho kiểu này. Có thể xem lại trong chương 9 với `evidence/viewer.json`, run B-01 (`viewer.json: runs[0].id = B-01`); phát lại cùng params/policy bằng Python cho tiếp xúc ego–C2 lúc t = 12,5 s (số từ lần phát lại, không có sẵn trong JSON).
+![Chương 9, B-01 (bus_bypass) lúc t = 12,9 s, vừa sau tiếp xúc 12,5 s](evidence/shots/q6-fix-ghost.png)
+
+Ảnh B-01 (`viewer.json: runs[0].id = B-01`), đường ướt μ 0,5, khe chấp nhận 8,1 m: C2 (xe tím) lách xe buýt rồi nhập vào làn, xe ta (xe đặc, policy gốc) chạm C2 lúc 12,5 s (banner đỏ của trình xem). Cùng ảnh này dùng cho câu 6.
 
 > Ảnh: không kèm ảnh chụp trình xem cho kiểu này. Có thể xem lại run C-01 (`viewer.json: runs[4].id = C-01`); phát lại bằng Python cho sự kiện block với P1 lúc t = 21,5 s (số từ lần phát lại).
 
@@ -119,7 +121,9 @@ Policy chọn trên TRAIN: `fix.json: chosen.policy.cutinLat = 3.0`; các núm c
 
 TEST cho điểm ước lượng và cận của các mode đã thấy giảm, nhưng chưa chứng minh rủi ro tổng thể thật sự thấp hơn. Dù bản sửa tốt hơn thật, cận trên vẫn có thể lớn hơn điểm baseline: đó là hai đại lượng khác nhau, và mode chưa thấy phải cộng bất định. Cụ thể `fix.json: chosen_test.bus_bypass.upper_zero_hits = 0.0375` và `fix.json: chosen_test.other_crashes.hi = 0.0012788956648046956`. Không có hits không có nghĩa xác suất bằng không. TRAIN fail_hi trong file chỉ phản ánh phần đã thấy, chưa cộng các cận này.
 
-> Ảnh: không kèm ảnh có bóng mờ. Kiểm chứng bằng phát lại Python ngoài `evidence/`: trên B-01…B-04 (`viewer.json: runs[0..3]`), policy gốc chạm C2 lúc 12,5–12,7 s, còn policy chọn (`cutinLat = 3.0`) không có sự kiện ego nào; trên C-01…C-04 cả hai policy đều chặn vạch như nhau (bản sửa không chữa kiểu crosswalk_block).
+![Chương 9, B-01 có bóng mờ của policy chọn](evidence/shots/q6-fix-ghost.png)
+
+Vì B-01 được cuộc săn tìm ra dưới policy gốc, trình xem chạy xe đặc bằng policy gốc và vẽ **bóng mờ là policy chọn** (`cutinLat = 3.0`); nhãn bảng thông tin vì vậy bị đảo ("chính sách của bạn" = gốc, va chạm 12,5 s; "chính sách gốc" = bản sửa, không va chạm). Trong ảnh, xe đặc chạm C2 còn bóng mờ dừng phía sau, không tiếp xúc. Phát lại bằng Python ngoài `evidence/` cho cùng kết quả trên B-01…B-04 (gốc chạm C2 lúc 12,5–12,7 s, bản sửa không có sự kiện ego); trên C-01…C-04 cả hai policy đều chặn vạch như nhau.
 
 Núm nghe an toàn hơn nhưng tăng điểm thất bại: `fix.json: table[8].policy.T = 2.0`, `fix.json: table[8].fail = 0.000917426558228401`, so với `fix.json: baseline_train.policy.T = 1.6` và fail baseline TRAIN ở bảng. Khe lớn tạo cơ hội để C2 chen vào; giảm tốc cũng có thể khiến TG bám sát đâm đuôi. Đây là cơ chế phản ứng giải thích tính không đơn điệu, không phải bằng chứng rằng dòng này đã quan sát rear_ended. Tương tự `fix.json: table[2].policy.cautionV = 6.0` có `fix.json: table[2].fail = 0.0009637356174758274`: giảm tốc thận trọng không bảo đảm giảm lỗi.
 
