@@ -93,9 +93,9 @@ Kết quả từng cuộc săn:
 
 Bus_bypass: C2 chờ khe rồi lách qua xe buýt dừng, xe buýt che tầm nhìn ego nên ego nhận ra xe chen vào quá muộn. Crosswalk_block: người đi bộ bước ra từ sau xe buýt; ego dừng nhưng thân xe còn chắn vạch qua đường.
 
-![Chương 9, B-01 (bus_bypass) lúc t = 12,9 s, vừa sau tiếp xúc 12,5 s](evidence/shots/q6-fix-ghost.png)
+![Chương 9, B-01 (bus_bypass) lúc t = 13,2 s, ngay sau tiếp xúc 12,5 s](evidence/shots/q5-bus_bypass.png)
 
-Ảnh B-01 (`viewer.json: runs[0].id = B-01`), đường ướt μ 0,5, khe chấp nhận 8,1 m: C2 (xe tím) lách xe buýt rồi nhập vào làn, xe ta (xe đặc, policy gốc) chạm C2 lúc 12,5 s (banner đỏ của trình xem). Cùng ảnh này dùng cho câu 6.
+Ảnh B-01 (`viewer.json: runs[0].id = B-01`), đường ướt μ 0,5, khe chấp nhận 8,1 m: C2 (xe tím) lách xe buýt rồi nhập vào làn, xe ta (xe đặc, policy gốc) chạm C2 lúc 12,5 s (banner đỏ của trình xem). Ảnh có bóng mờ của bản sửa ở câu 6.
 
 > Ảnh: không kèm ảnh chụp trình xem cho kiểu này. Có thể xem lại run C-01 (`viewer.json: runs[4].id = C-01`); phát lại bằng Python cho sự kiện block với P1 lúc t = 21,5 s (số từ lần phát lại).
 
